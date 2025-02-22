@@ -102,7 +102,8 @@ class NNAgent:
 
 # Train NNAgent
 agent = NNAgent()
-agent.train(1000)
+# agent.train(1000)
+agent.train(10)
 
 # --- DEEP Q-LEARNING AGENT ---
 class DQLAgent:
@@ -164,7 +165,7 @@ class DQLAgent:
 
 # Train DQLAgent
 dql_agent = DQLAgent()
-dql_agent.learn(1000)
+dql_agent.learn(10)
 
 # Close environment
 env.close()

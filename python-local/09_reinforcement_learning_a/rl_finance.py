@@ -170,20 +170,34 @@ class DQLAgent:
 
     def learn(self, episodes):
         """Main training loop."""
-        total_rewards = []
+        total_rewards = []  # Stores total rewards per episode
         for e in range(episodes):
-            state, _ = env.reset()
+            reset_result = env.reset()
+            if isinstance(reset_result, tuple):
+                state, info = reset_result  # Unpack correctly
+            else:
+                state = reset_result  # Handle older Gym versions
+
             state = np.reshape(state, [1, 4])
-            for _ in range(500):
+            episode_reward = 0  # Track total reward per episode
+
+            for step in range(500):
                 action = self.act(state)
                 next_state, reward, done, _, _ = env.step(action)
                 next_state = np.reshape(next_state, [1, 4])
                 self.memory.append([state, action, reward, next_state, done])
                 state = next_state
+                episode_reward += reward  # Update episode total reward
                 if done:
-                    total_rewards.append(_ + 1)
-                    print(f"Episode {e+1}/{episodes}, Score: {_ + 1}")
+                    total_rewards.append(episode_reward)  # Store total reward for this episode
+                    print(f"Episode {e+1}/{episodes}, Score: {episode_reward}")
                     break
+
+            # Compute moving average (over the last 25 episodes)
+            if len(total_rewards) >= 25:
+                avg_reward = sum(total_rewards[-25:]) / 25
+                self.averages.append(avg_reward)
+
             if len(self.memory) > self.batch_size:
                 self.replay()
 
@@ -193,11 +207,12 @@ env = FinanceEnv()
 
 # Train DQLAgent
 agent = DQLAgent()
-agent.learn(1000)
+agent.learn(100)
 
 # Plot Training Performance
 plt.figure(figsize=(10, 6))
-plt.plot(agent.averages, label='Moving Average')
+x = range(len(agent.averages))
+plt.plot(x, agent.averages, label='Moving Average')
 plt.xlabel('Episodes')
 plt.ylabel('Total Reward')
 plt.legend()
